@@ -4,6 +4,7 @@ import {
   listTasks,
   updateTask
 } from './services/taskService.js';
+import { colorizeStatus, colorizePriority } from './utils/colors.js';
 
 /**
  * Print a section title for demo output.
@@ -12,6 +13,31 @@ import {
  */
 function printSection(title) {
   console.log(`\n=== ${title} ===`);
+}
+
+/**
+ * Format a task object with colored status and priority.
+ * @param {Object} task - The task object.
+ * @returns {Object} A formatted task with colored output.
+ */
+function formatTaskWithColors(task) {
+  return {
+    ...task,
+    status: colorizeStatus(task.status),
+    priority: colorizePriority(task.priority)
+  };
+}
+
+/**
+ * Print a task or array of tasks with colors.
+ * @param {Object|Array} taskOrTasks - A task or list of tasks.
+ */
+function printTasksWithColors(taskOrTasks) {
+  if (Array.isArray(taskOrTasks)) {
+    taskOrTasks.forEach(task => console.log(formatTaskWithColors(task)));
+  } else {
+    console.log(formatTaskWithColors(taskOrTasks));
+  }
 }
 
 /**
@@ -46,33 +72,33 @@ function main() {
     console.log(taskC);
 
     printSection('List All Tasks');
-    console.log(listTasks());
+    printTasksWithColors(listTasks());
 
     printSection('Filter: status=todo');
-    console.log(listTasks({ status: 'todo' }));
+    printTasksWithColors(listTasks({ status: 'todo' }));
 
     printSection('Filter: priority=high');
-    console.log(listTasks({ priority: 'high' }));
+    printTasksWithColors(listTasks({ priority: 'high' }));
 
     printSection('Sort: priority');
-    console.log(listTasks({ sortBy: 'priority' }));
+    printTasksWithColors(listTasks({ sortBy: 'priority' }));
 
     printSection('Sort: createdAt');
-    console.log(listTasks({ sortBy: 'createdAt' }));
+    printTasksWithColors(listTasks({ sortBy: 'createdAt' }));
 
     printSection('Update Task');
     const updatedTask = updateTask(taskA.id, {
       status: 'done',
       priority: 'medium'
     });
-    console.log(updatedTask);
+    printTasksWithColors(updatedTask);
 
     printSection('Delete Task');
     const deletedTask = deleteTask(taskC.id);
-    console.log(deletedTask);
+    printTasksWithColors(deletedTask);
 
     printSection('Final Task List');
-    console.log(listTasks());
+    printTasksWithColors(listTasks());
   } catch (error) {
     console.error('Task Manager demo failed:', error);
     process.exitCode = 1;
