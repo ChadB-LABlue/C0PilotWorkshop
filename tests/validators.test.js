@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+  validateCategory,
   validateDescription,
   validateId,
   validateListOptions,
@@ -49,6 +50,17 @@ test('validatePriority accepts only supported values', () => {
   assert.throws(() => validatePriority('urgent'), /priority must be one of/);
 });
 
+test('validateCategory trims valid input and enforces length bounds', () => {
+  assert.equal(validateCategory('  work  '), 'work');
+  assert.equal(validateCategory('x'.repeat(50)), 'x'.repeat(50));
+  assert.throws(() => validateCategory('   '), /category length must be between 1 and 50 characters\./);
+  assert.throws(() => validateCategory('x'.repeat(51)), /category length must be between 1 and 50 characters\./);
+});
+
+test('validateCategory rejects non-string input', () => {
+  assert.throws(() => validateCategory(404), /category must be a string\./);
+});
+
 test('validateId trims and rejects empty input', () => {
   assert.equal(validateId('  task-123  '), 'task-123');
   assert.throws(() => validateId('   '), /id must be a non-empty string\./);
@@ -64,8 +76,8 @@ test('validateSortBy accepts undefined and supported values only', () => {
 test('validateListOptions returns normalized valid options', () => {
   assert.deepEqual(validateListOptions({}), {});
   assert.deepEqual(
-    validateListOptions({ status: 'todo', priority: 'high', sortBy: 'priority' }),
-    { status: 'todo', priority: 'high', sortBy: 'priority' }
+    validateListOptions({ status: 'todo', priority: 'high', category: '  work  ', sortBy: 'priority' }),
+    { status: 'todo', priority: 'high', category: 'work', sortBy: 'priority' }
   );
 });
 
@@ -74,5 +86,6 @@ test('validateListOptions rejects invalid container and invalid fields', () => {
   assert.throws(() => validateListOptions([]), /options must be an object\./);
   assert.throws(() => validateListOptions({ status: 'blocked' }), /status must be one of/);
   assert.throws(() => validateListOptions({ priority: 'urgent' }), /priority must be one of/);
+  assert.throws(() => validateListOptions({ category: '' }), /category length must be between 1 and 50 characters\./);
   assert.throws(() => validateListOptions({ sortBy: 'title' }), /sortBy must be one of/);
 });

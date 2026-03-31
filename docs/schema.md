@@ -23,6 +23,10 @@
   - Type: `'low' | 'medium' | 'high'`
   - Required: Yes
   - Validation: must be exactly one of `'low'`, `'medium'`, `'high'`; default is `'medium'` on create.
+- `category`
+  - Type: `string`
+  - Required: No
+  - Validation: optional at input; when omitted, defaults to `'general'`; when provided, must be a string and trimmed length must be `1..50`.
 - `createdAt`
   - Type: `string` (ISO-8601 timestamp)
   - Required: Yes
@@ -47,6 +51,10 @@
   - Type: `'low' | 'medium' | 'high' | undefined`
   - Required: No
   - Validation: when provided, must be an allowed priority.
+- `category`
+  - Type: `string | undefined`
+  - Required: No
+  - Validation: when provided, must be a non-empty trimmed string with length `1..50`.
 - `sort`
   - Type: `'priority' | 'createdAt' | undefined`
   - Required: No
@@ -68,7 +76,7 @@ src/
     task-service.js            # Business logic: create/update/delete/list with validation and timestamps.
   commands/
     create-task.js             # Handles create command input/output contract.
-    list-tasks.js              # Handles list command with filter and sort options.
+    list-tasks.js              # Handles list command with status/priority/category filtering and sorting.
     update-task.js             # Handles update command and partial field updates.
     delete-task.js             # Handles delete command by id.
   utils/
@@ -118,7 +126,7 @@ test/
 - Responsibilities:
   - Enforce validation rules and defaults.
   - Create IDs/timestamps.
-  - Implement filtering by status/priority and sorting by priority/creation date.
+  - Implement filtering by status/priority/category and sorting by priority/creation date.
   - Return success/failure result objects consumed by commands.
 - Dependencies:
   - `src/constants/enums.js`
@@ -138,7 +146,7 @@ test/
 - Exports:
   - `runListTasks(args, taskService)`
 - Responsibilities:
-  - Build `ListQuery` from flags.
+  - Build `ListQuery` from flags, including optional category.
   - Request filtered/sorted tasks from service.
 - Dependencies:
   - `src/core/task-service.js`
@@ -173,10 +181,11 @@ test/
   - `validateDescription(description)`
   - `validateStatus(status)`
   - `validatePriority(priority)`
+  - `validateCategory(category)`
   - `validateId(id)`
   - `validateSort(sort, desc)`
 - Responsibilities:
-  - Provide reusable validation checks and descriptive `Error` throws.
+  - Provide reusable validation checks (including category defaults/rules) and descriptive `Error` throws.
 - Dependencies:
   - `src/constants/enums.js`
 
@@ -202,7 +211,7 @@ test/
 
 - `ValidationError`
   - Thrown by: `src/utils/validators.js` and service-level guard clauses in `src/core/task-service.js`.
-  - Used for: invalid title/description/status/priority/id/sort input.
+  - Used for: invalid title/description/status/priority/category/id/sort input.
 
 - `NotFoundError`
   - Thrown by: `src/core/task-service.js` when update/delete targets a non-existent task id.

@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import {
+  validateCategory,
   validateDescription,
   validateId,
   validatePriority,
@@ -19,6 +20,7 @@ export class Task {
    * @param {string} [input.description] - Task description.
    * @param {'todo' | 'in-progress' | 'done'} [input.status] - Task status.
    * @param {'low' | 'medium' | 'high'} [input.priority] - Task priority.
+  * @param {string} [input.category] - Task category.
    * @param {string} [input.id] - Optional pre-defined id.
    * @param {string} [input.createdAt] - Optional pre-defined creation timestamp.
    * @param {string} [input.updatedAt] - Optional pre-defined update timestamp.
@@ -34,6 +36,7 @@ export class Task {
       description = '',
       status = 'todo',
       priority = 'medium',
+      category = 'general',
       createdAt,
       updatedAt
     } = input;
@@ -43,6 +46,7 @@ export class Task {
     this.description = validateDescription(description);
     this.status = validateStatus(status);
     this.priority = validatePriority(priority);
+    this.category = validateCategory(category);
 
     const createdTimestamp = createdAt ?? new Date().toISOString();
     const updatedTimestamp = updatedAt ?? createdTimestamp;
@@ -58,7 +62,7 @@ export class Task {
   /**
    * Return a plain object representation for storage/transport.
    *
-   * @returns {{id: string, title: string, description: string, status: string, priority: string, createdAt: string, updatedAt: string}}
+   * @returns {{id: string, title: string, description: string, status: string, priority: string, category: string, createdAt: string, updatedAt: string}}
    */
   toJSON() {
     return {
@@ -67,6 +71,7 @@ export class Task {
       description: this.description,
       status: this.status,
       priority: this.priority,
+      category: this.category,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt
     };

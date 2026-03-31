@@ -37,18 +37,25 @@ Task Manager CLI is a Node.js command-line application that allows users to crea
      - If the ID does not exist, an error message is displayed.
 
 5. **Filter tasks**
-   - As a user, I can filter tasks by status (`todo`, `in-progress`, `done`) or by priority (`low`, `medium`, `high`) so that I can focus on relevant items.
+   - As a user, I can filter tasks by status (`todo`, `in-progress`, `done`), by priority (`low`, `medium`, `high`), or by category (for example `work`, `personal`, `urgent`) so that I can focus on relevant items.
    - *Acceptance criteria:*
      - Filter results are displayed in the same format as the list command.
      - Invalid filter values produce a clear error message.
 
-6. **Sort tasks**
+6. **Categorize tasks**
+   - As a user, I can optionally assign a category when creating a task so that I can organize tasks by context.
+   - *Acceptance criteria:*
+     - `category` is optional and defaults to `general` when omitted.
+     - If provided, `category` is stored on the task and returned in list output.
+     - Invalid category values produce a clear validation error.
+
+7. **Sort tasks**
    - As a user, I can sort the task list by priority (high → medium → low) or by creation date (newest or oldest first) so that I can prioritise my work.
    - *Acceptance criteria:*
      - Sort order is stable (tasks with equal keys retain their original order).
      - The `--sort` flag accepts `priority` and `date` as values.
 
-7. **Error handling**
+8. **Error handling**
    - As a user, I receive clear, actionable error messages when I provide invalid input so that I can quickly correct mistakes.
    - *Acceptance criteria:*
      - Missing required arguments produce a usage hint.
@@ -68,6 +75,7 @@ Task Manager CLI is a Node.js command-line application that allows users to crea
 | `description` | `string`                                  | Optional, defaults to `""`  |
 | `status`    | `"todo" \| "in-progress" \| "done"`         | Defaults to `"todo"`        |
 | `priority`  | `"low" \| "medium" \| "high"`               | Defaults to `"medium"`      |
+| `category`  | `string`                                    | Optional, defaults to `"general"` |
 | `createdAt` | `string` (ISO 8601)                         | Set on creation             |
 | `updatedAt` | `string` (ISO 8601)                         | Updated on every change     |
 
@@ -120,6 +128,7 @@ src/
 | `description` | Optional. If provided, must be a string. Max 500 characters. |
 | `status`    | Must be one of `todo`, `in-progress`, `done`.                |
 | `priority`  | Must be one of `low`, `medium`, `high`.                      |
+| `category`  | Optional. If provided, must be a non-empty string. Defaults to `general`. |
 | `id`        | Must be a positive integer. Must refer to an existing task.  |
 
 Validation is centralised in `src/validators.js`. Each command calls the appropriate validator before mutating state, so validation logic is never duplicated.
@@ -145,11 +154,17 @@ Validation is centralised in `src/validators.js`. Each command calls the appropr
 
 ### Phase 3 — Filter and sort (Milestone 3)
 
-- [ ] Implement `filter` command handler with `--status` and `--priority` flags.
+- [ ] Implement `filter` command handler with `--status`, `--priority`, and `--category` flags.
 - [ ] Implement `sort` command handler with `--sort priority` and `--sort date` options.
 - [ ] Add tests for filter and sort logic.
 
-### Phase 4 — Polish and documentation (Milestone 4)
+### Phase 4 — Categories and validation hardening (Milestone 4)
+
+- [ ] Add optional `category` support to task creation, defaulting to `general`.
+- [ ] Extend validators to enforce category input rules.
+- [ ] Add tests for category defaults and category-based filtering.
+
+### Phase 5 — Polish and documentation (Milestone 5)
 
 - [ ] Add `--help` flag that prints usage for all commands.
 - [ ] Add input validation error messages with usage hints.

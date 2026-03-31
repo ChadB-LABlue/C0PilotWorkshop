@@ -50,14 +50,16 @@ function main() {
       title: 'Write workshop docs',
       description: 'Draft exercise overview and expected outcomes.',
       status: 'todo',
-      priority: 'high'
+      priority: 'high',
+      category: 'work'
     });
 
     const taskB = createTask({
       title: 'Review pull requests',
       description: 'Check pending PRs for exercise updates.',
       status: 'in-progress',
-      priority: 'medium'
+      priority: 'medium',
+      category: 'urgent'
     });
 
     const taskC = createTask({
@@ -79,6 +81,9 @@ function main() {
 
     printSection('Filter: priority=high');
     printTasksWithColors(listTasks({ priority: 'high' }));
+
+    printSection('Filter: category=work');
+    printTasksWithColors(listTasks({ category: 'work' }));
 
     printSection('Sort: priority');
     printTasksWithColors(listTasks({ sortBy: 'priority' }));

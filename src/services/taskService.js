@@ -1,5 +1,6 @@
 import { Task } from '../models/task.js';
 import {
+  validateCategory,
   validateDescription,
   validateId,
   validateListOptions,
@@ -19,8 +20,8 @@ const tasks = [];
 /**
  * Create and store a new task.
  *
- * @param {{title: string, description?: string, status?: string, priority?: string}} input - Task creation input.
- * @returns {{id: string, title: string, description: string, status: string, priority: string, createdAt: string, updatedAt: string}} Created task.
+ * @param {{title: string, description?: string, status?: string, priority?: string, category?: string}} input - Task creation input.
+ * @returns {{id: string, title: string, description: string, status: string, priority: string, category: string, createdAt: string, updatedAt: string}} Created task.
  */
 export function createTask(input) {
   if (input === null || typeof input !== 'object' || Array.isArray(input)) {
@@ -31,7 +32,8 @@ export function createTask(input) {
     title: input.title,
     description: input.description ?? '',
     status: input.status ?? 'todo',
-    priority: input.priority ?? 'medium'
+    priority: input.priority ?? 'medium',
+    category: input.category ?? 'general'
   }).toJSON();
 
   tasks.push(task);
@@ -41,8 +43,8 @@ export function createTask(input) {
 /**
  * List tasks with optional filtering and sorting.
  *
- * @param {{status?: string, priority?: string, sortBy?: 'priority' | 'createdAt'}} [options] - Query options.
- * @returns {Array<{id: string, title: string, description: string, status: string, priority: string, createdAt: string, updatedAt: string}>} Matching tasks.
+ * @param {{status?: string, priority?: string, category?: string, sortBy?: 'priority' | 'createdAt'}} [options] - Query options.
+ * @returns {Array<{id: string, title: string, description: string, status: string, priority: string, category: string, createdAt: string, updatedAt: string}>} Matching tasks.
  */
 export function listTasks(options = {}) {
   const normalizedOptions = validateListOptions(options);
@@ -50,7 +52,8 @@ export function listTasks(options = {}) {
   let result = tasks.filter((task) => {
     const statusMatches = normalizedOptions.status ? task.status === normalizedOptions.status : true;
     const priorityMatches = normalizedOptions.priority ? task.priority === normalizedOptions.priority : true;
-    return statusMatches && priorityMatches;
+    const categoryMatches = normalizedOptions.category ? task.category === normalizedOptions.category : true;
+    return statusMatches && priorityMatches && categoryMatches;
   });
 
   if (normalizedOptions.sortBy === 'priority') {
@@ -68,8 +71,8 @@ export function listTasks(options = {}) {
  * Update an existing task by id.
  *
  * @param {string} id - Task id.
- * @param {{title?: string, description?: string, status?: string, priority?: string}} updates - Partial updates.
- * @returns {{id: string, title: string, description: string, status: string, priority: string, createdAt: string, updatedAt: string}} Updated task.
+ * @param {{title?: string, description?: string, status?: string, priority?: string, category?: string}} updates - Partial updates.
+ * @returns {{id: string, title: string, description: string, status: string, priority: string, category: string, createdAt: string, updatedAt: string}} Updated task.
  */
 export function updateTask(id, updates) {
   const normalizedId = validateId(id);
@@ -99,6 +102,10 @@ export function updateTask(id, updates) {
     targetTask.priority = validatePriority(updates.priority);
   }
 
+  if (Object.prototype.hasOwnProperty.call(updates, 'category')) {
+    targetTask.category = validateCategory(updates.category);
+  }
+
   targetTask.updatedAt = new Date().toISOString();
   return { ...targetTask };
 }
@@ -107,7 +114,7 @@ export function updateTask(id, updates) {
  * Delete an existing task by id.
  *
  * @param {string} id - Task id.
- * @returns {{id: string, title: string, description: string, status: string, priority: string, createdAt: string, updatedAt: string}} Deleted task.
+ * @returns {{id: string, title: string, description: string, status: string, priority: string, category: string, createdAt: string, updatedAt: string}} Deleted task.
  */
 export function deleteTask(id) {
   const normalizedId = validateId(id);

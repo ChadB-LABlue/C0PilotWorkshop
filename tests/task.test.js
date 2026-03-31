@@ -12,6 +12,7 @@ test('Task constructor creates a valid task with defaults', () => {
   assert.equal(json.description, '');
   assert.equal(json.status, 'todo');
   assert.equal(json.priority, 'medium');
+  assert.equal(json.category, 'general');
   assert.equal(typeof json.createdAt, 'string');
   assert.equal(typeof json.updatedAt, 'string');
 });
@@ -26,6 +27,7 @@ test('Task constructor trims title and accepts explicit valid fields', () => {
     description: 'Describe architecture.',
     status: 'in-progress',
     priority: 'high',
+    category: '  work  ',
     createdAt,
     updatedAt
   });
@@ -37,8 +39,16 @@ test('Task constructor trims title and accepts explicit valid fields', () => {
   assert.equal(json.description, 'Describe architecture.');
   assert.equal(json.status, 'in-progress');
   assert.equal(json.priority, 'high');
+  assert.equal(json.category, 'work');
   assert.equal(json.createdAt, createdAt);
   assert.equal(json.updatedAt, updatedAt);
+});
+
+test('Task constructor rejects invalid category', () => {
+  assert.throws(
+    () => new Task({ title: 'Valid title', category: '' }),
+    /category length must be between 1 and 50 characters\./
+  );
 });
 
 test('Task constructor rejects non-object input', () => {
@@ -164,7 +174,8 @@ test('Task constructor uses defaults when optional fields are missing or undefin
     title: 'Optional fields',
     description: undefined,
     status: undefined,
-    priority: undefined
+    priority: undefined,
+    category: undefined
   });
 
   const json = task.toJSON();
@@ -172,6 +183,7 @@ test('Task constructor uses defaults when optional fields are missing or undefin
   assert.equal(json.description, '');
   assert.equal(json.status, 'todo');
   assert.equal(json.priority, 'medium');
+  assert.equal(json.category, 'general');
 });
 
 test('Task model allows duplicate explicit ids for separate instances', () => {

@@ -111,6 +111,35 @@ export function validatePriority(priority) {
 }
 
 /**
+ * Validate and normalize a task category.
+ *
+ * @param {string} category - Task category value.
+ * @returns {string} Normalized category.
+ * @throws {TypeError} When category is not a string or has invalid length.
+ *
+ * @example
+ * validateCategory('work');
+ * // 'work'
+ *
+ * @example
+ * validateCategory('  personal  ');
+ * // 'personal'
+ */
+export function validateCategory(category) {
+  if (typeof category !== 'string') {
+    throw new TypeError('category must be a string.');
+  }
+
+  const normalizedCategory = category.trim();
+
+  if (normalizedCategory.length < 1 || normalizedCategory.length > 50) {
+    throw new TypeError('category length must be between 1 and 50 characters.');
+  }
+
+  return normalizedCategory;
+}
+
+/**
  * Validate a task id.
  *
  * @param {string} id - Task id value.
@@ -176,8 +205,9 @@ export function validateSortBy(sortBy) {
  * @param {object} options - List options.
  * @param {string} [options.status] - Filter status.
  * @param {string} [options.priority] - Filter priority.
+ * @param {string} [options.category] - Filter category.
  * @param {string} [options.sortBy] - Sort key.
- * @returns {{status?: string, priority?: string, sortBy?: string}} Normalized options.
+ * @returns {{status?: string, priority?: string, category?: string, sortBy?: string}} Normalized options.
  * @throws {TypeError} When options or any field is invalid.
  *
  * @example
@@ -201,6 +231,10 @@ export function validateListOptions(options = {}) {
 
   if (options.priority !== undefined) {
     normalized.priority = validatePriority(options.priority);
+  }
+
+  if (options.category !== undefined) {
+    normalized.category = validateCategory(options.category);
   }
 
   if (options.sortBy !== undefined) {
