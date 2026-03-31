@@ -1,138 +1,157 @@
-# Task Manager CLI Project Plan
+# Task Manager CLI — Project Plan
 
-## 1. Project overview
-Task Manager CLI is a small Node.js 20+ command-line application for managing personal tasks entirely in memory during runtime. Users can create, list, update, and delete tasks, then filter by status or priority and sort by priority or creation date. The project is intentionally scoped for a workshop exercise, uses only built-in Node.js modules, and avoids external dependencies and databases.
+## Project Overview
 
-## 2. User stories
-1. As a user, I want to create a task so that I can track work I need to do.
-Acceptance criteria:
-- Given I run the create command with required inputs, a new task is added with a unique id.
-- The task includes title, description, status, priority, createdAt, and updatedAt.
-- If status or priority is not provided, defaults are applied (`todo`, `medium`).
+Task Manager CLI is a Node.js command-line application that allows users to create, list, update, delete, filter, and sort tasks entirely in memory, with no external dependencies or database required. The application targets developers and power users who prefer a fast, scriptable interface for managing personal task lists during a project or workshop session.
 
-2. As a user, I want to list all tasks so that I can review my current workload.
-Acceptance criteria:
-- Running the list command shows all tasks currently in memory.
-- Output includes id, title, status, priority, and timestamps in a readable table-like format.
-- If no tasks exist, the CLI prints a clear empty-state message.
+---
 
-3. As a user, I want to update a task so that I can keep task details accurate.
-Acceptance criteria:
-- Running the update command with a valid id updates one or more fields.
-- `updatedAt` is refreshed whenever any field changes.
-- If the id does not exist, the CLI returns a helpful error message.
+## User Stories
 
-4. As a user, I want to delete a task so that I can remove tasks that are no longer needed.
-Acceptance criteria:
-- Running the delete command with a valid id removes that task from memory.
-- The CLI confirms successful deletion.
-- If the id does not exist, the CLI returns a helpful error message.
+1. **Create a task**
+   - As a user, I can create a new task by providing a title, description, and priority so that I can track work items.
+   - *Acceptance criteria:*
+     - Task is assigned a unique numeric ID.
+     - `status` defaults to `todo`.
+     - `createdAt` and `updatedAt` are set to the current ISO timestamp.
+     - The new task is printed to stdout in a human-readable format.
 
-5. As a user, I want to filter tasks by status or priority so that I can focus on relevant tasks.
-Acceptance criteria:
-- The list command accepts `--status` and `--priority` filters.
-- Filter values are validated against allowed enums.
-- Combined filters return only tasks matching all supplied criteria.
+2. **List all tasks**
+   - As a user, I can list all tasks so that I can see everything I need to do.
+   - *Acceptance criteria:*
+     - All tasks are displayed in a table or list format.
+     - When no tasks exist, the output reads "No tasks found."
 
-6. As a user, I want to sort tasks by priority or creation date so that I can triage effectively.
-Acceptance criteria:
-- The list command accepts `--sort priority` or `--sort createdAt`.
-- Priority sorting uses order `high`, `medium`, `low`.
-- Date sorting supports ascending and descending order via a flag (for example, `--desc`).
+3. **Update a task**
+   - As a user, I can update a task's title, description, status, or priority so that I can keep task information current.
+   - *Acceptance criteria:*
+     - Only the fields provided are changed; others remain unchanged.
+     - `updatedAt` is refreshed on every update.
+     - If the task ID does not exist, an error message is displayed and the process exits with code 1.
 
-## 3. Data model
-- `Task`
-  - `id: string` - unique identifier (for example, incrementing string or timestamp-based id)
-  - `title: string` - short task name, required, non-empty
-  - `description: string` - optional longer details (can be empty string)
-  - `status: 'todo' | 'in-progress' | 'done'`
-  - `priority: 'low' | 'medium' | 'high'`
-  - `createdAt: string` - ISO timestamp (`new Date().toISOString()`)
-  - `updatedAt: string` - ISO timestamp
+4. **Delete a task**
+   - As a user, I can delete a task by ID so that I can remove completed or cancelled work.
+   - *Acceptance criteria:*
+     - The task is removed from the in-memory store.
+     - A confirmation message is printed.
+     - If the ID does not exist, an error message is displayed.
 
-- `TaskStore` (in-memory collection)
-  - `tasks: Task[]` - array storing current runtime tasks
+5. **Filter tasks**
+   - As a user, I can filter tasks by status (`todo`, `in-progress`, `done`) or by priority (`low`, `medium`, `high`) so that I can focus on relevant items.
+   - *Acceptance criteria:*
+     - Filter results are displayed in the same format as the list command.
+     - Invalid filter values produce a clear error message.
 
-## 4. File structure
-```text
-src/
-  index.js             # CLI entry point and argument routing
-  commands/
-    create-task.js     # Create command handler
-    list-tasks.js      # List with filter/sort handler
-    update-task.js     # Update command handler
-    delete-task.js     # Delete command handler
-  core/
-    task-store.js      # In-memory task array and CRUD operations
-    task-service.js    # Business rules, validation, timestamps
-  utils/
-    parse-args.js      # Minimal argument parsing with process.argv
-    format-output.js   # Console table/row formatting
-    validators.js      # Enum and field validation helpers
-  constants/
-    enums.js           # Allowed status and priority values
+6. **Sort tasks**
+   - As a user, I can sort the task list by priority (high → medium → low) or by creation date (newest or oldest first) so that I can prioritise my work.
+   - *Acceptance criteria:*
+     - Sort order is stable (tasks with equal keys retain their original order).
+     - The `--sort` flag accepts `priority` and `date` as values.
+
+7. **Error handling**
+   - As a user, I receive clear, actionable error messages when I provide invalid input so that I can quickly correct mistakes.
+   - *Acceptance criteria:*
+     - Missing required arguments produce a usage hint.
+     - Unknown commands print an error and the full usage summary.
+     - All errors are written to `stderr`; the process exits with a non-zero code.
+
+---
+
+## Data Model
+
+### Task
+
+| Property    | Type                                        | Notes                       |
+|-------------|---------------------------------------------|-----------------------------|
+| `id`        | `number`                                    | Auto-incrementing integer   |
+| `title`     | `string`                                    | Required, max 100 chars     |
+| `description` | `string`                                  | Optional, defaults to `""`  |
+| `status`    | `"todo" \| "in-progress" \| "done"`         | Defaults to `"todo"`        |
+| `priority`  | `"low" \| "medium" \| "high"`               | Defaults to `"medium"`      |
+| `createdAt` | `string` (ISO 8601)                         | Set on creation             |
+| `updatedAt` | `string` (ISO 8601)                         | Updated on every change     |
+
+### In-memory store
+
+```js
+// src/store.js
+{
+  tasks: Task[],   // ordered array of task objects
+  nextId: number   // auto-increment counter
+}
 ```
 
-## 5. Implementation phases
-1. Milestone 1: CLI skeleton and command routing
-- Create `src/index.js` to parse command name and options.
-- Add usage/help output for invalid or missing commands.
-- Establish shared enums and validation utilities.
+---
 
-2. Milestone 2: In-memory data layer and Task model
-- Implement `TaskStore` with in-memory array and id generation.
-- Implement create/read/update/delete methods with clear return values.
-- Add timestamp handling for `createdAt` and `updatedAt`.
+## File Structure
 
-3. Milestone 3: CRUD command handlers
-- Implement create, list, update, and delete command modules.
-- Ensure input validation and user-friendly errors.
-- Verify behavior for edge cases (missing fields, unknown id).
+```
+src/
+├── index.js          # Entry point — parses argv and dispatches commands
+├── store.js          # In-memory task store (singleton)
+├── commands/
+│   ├── create.js     # create command handler
+│   ├── list.js       # list command handler
+│   ├── update.js     # update command handler
+│   ├── delete.js     # delete command handler
+│   ├── filter.js     # filter command handler
+│   └── sort.js       # sort command handler
+├── validators.js     # Input validation helpers
+├── formatters.js     # Output formatting helpers
+└── errors.js         # Custom error types and exit helper
+```
 
-4. Milestone 4: Filtering and sorting
-- Add status/priority filtering in list workflow.
-- Add sorting by priority and creation date with optional descending order.
-- Ensure predictable ordering rules and stable output.
+---
 
-5. Milestone 5: Output polish and workshop-ready verification
-- Improve terminal formatting for readability.
-- Perform manual test runs for all user stories.
-- Document command examples in comments or README snippet for workshop participants.
+## Error Handling Conventions and Input Validation Rules
 
-## 6. Error handling conventions and input validation rules
 ### Error handling conventions
-- All command handlers return a result object with either `{ ok: true, data }` or `{ ok: false, code, message }`.
-- `index.js` is the only module that writes final user-facing errors to stderr and sets process exit codes.
-- Use exit code `0` for success, `1` for validation errors, and `2` for unexpected runtime errors.
-- Validation errors must be concise and actionable (for example, `Invalid --status value. Allowed: todo, in-progress, done`).
-- Not-found operations (update/delete on unknown id) return `ok: false` with code `TASK_NOT_FOUND` and do not throw exceptions.
-- Unexpected errors are caught at the CLI boundary, logged as a generic failure message, and optionally include a debug hint when `--verbose` is present.
+
+- All user-facing errors are instances of a custom `AppError` class (defined in `src/errors.js`).
+- Errors are written to `process.stderr`, never `process.stdout`.
+- The process exits with code `1` on any handled error.
+- Unhandled exceptions bubble up to a top-level `try/catch` in `src/index.js` which prints the message and exits with code `2`.
 
 ### Input validation rules
-- `title`
-  - Required for create.
-  - Must be a string after trimming.
-  - Must be between 1 and 120 characters.
-- `description`
-  - Optional for create/update.
-  - If provided, must be a string.
-  - Maximum length: 1000 characters.
-- `status`
-  - Allowed values: `todo`, `in-progress`, `done`.
-  - Default on create: `todo`.
-  - Invalid values return a validation error and do not mutate state.
-- `priority`
-  - Allowed values: `low`, `medium`, `high`.
-  - Default on create: `medium`.
-  - Invalid values return a validation error and do not mutate state.
-- `id`
-  - Required for update/delete.
-  - Must be a non-empty string.
-  - Unknown ids produce `TASK_NOT_FOUND`.
-- Filter flags
-  - `--status` and `--priority` must pass enum validation.
-  - If both are provided, filtering applies logical AND.
-- Sort flags
-  - `--sort` allowed values: `priority`, `createdAt`.
-  - `--desc` is only valid when `--sort` is present.
-  - Unknown sort fields return a validation error.
+
+| Field       | Rule                                                         |
+|-------------|--------------------------------------------------------------|
+| `title`     | Required. Must be a non-empty string. Max 100 characters.    |
+| `description` | Optional. If provided, must be a string. Max 500 characters. |
+| `status`    | Must be one of `todo`, `in-progress`, `done`.                |
+| `priority`  | Must be one of `low`, `medium`, `high`.                      |
+| `id`        | Must be a positive integer. Must refer to an existing task.  |
+
+Validation is centralised in `src/validators.js`. Each command calls the appropriate validator before mutating state, so validation logic is never duplicated.
+
+---
+
+## Implementation Phases
+
+### Phase 1 — Core data layer (Milestone 1)
+
+- [ ] Scaffold the project: create `src/` directory and all stub files.
+- [ ] Implement `src/store.js` with `createTask`, `getAll`, `getById`, `updateTask`, and `deleteTask` functions.
+- [ ] Implement `src/validators.js`.
+- [ ] Implement `src/errors.js`.
+- [ ] Write unit tests for the store and validators using Node.js built-in `assert`.
+
+### Phase 2 — CLI commands (Milestone 2)
+
+- [ ] Implement `src/index.js` argument parser (uses `process.argv`).
+- [ ] Implement `create`, `list`, `update`, `delete` command handlers.
+- [ ] Implement `src/formatters.js` for consistent output.
+- [ ] Manual smoke-test all four commands end-to-end.
+
+### Phase 3 — Filter and sort (Milestone 3)
+
+- [ ] Implement `filter` command handler with `--status` and `--priority` flags.
+- [ ] Implement `sort` command handler with `--sort priority` and `--sort date` options.
+- [ ] Add tests for filter and sort logic.
+
+### Phase 4 — Polish and documentation (Milestone 4)
+
+- [ ] Add `--help` flag that prints usage for all commands.
+- [ ] Add input validation error messages with usage hints.
+- [ ] Write `README.md` in `src/` describing how to run each command.
+- [ ] Review and refactor for code clarity.
